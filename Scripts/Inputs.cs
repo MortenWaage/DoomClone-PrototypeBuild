@@ -8,8 +8,8 @@ public class Inputs : MonoBehaviour
     public enum Directions { Forward, Backwards, Left, Right, Stopping, StrafeLeft, StrafeRight, Up, Down }
 
     #region Properties
-    WeaponController pWeapon;
-    MovePlayer pMovement;
+    W_Controller pWeapon;
+    P_Movement pMovement;
     Camera cam;
 
     [SerializeField] [Range(0, 150f)] float mouseSensitivity = 1f;
@@ -29,8 +29,8 @@ public class Inputs : MonoBehaviour
         yield return new WaitForEndOfFrame();
 
         playerMovement = GameController.Instance.DoomGuy.GetComponent<IMovement>();
-        pWeapon = GameController.Instance.DoomGuy.GetComponent<WeaponController>();
-        pMovement = GameController.Instance.DoomGuy.GetComponent<MovePlayer>(); // Just for testing
+        pWeapon = GameController.Instance.DoomGuy.GetComponent<W_Controller>();
+        pMovement = GameController.Instance.DoomGuy.GetComponent<P_Movement>(); // Just for testing
         pWeapon.SwapWeapon(Weapons.WeaponType.Pistol);
 
         isInitialized = true;
@@ -50,17 +50,19 @@ public class Inputs : MonoBehaviour
         // Respawn
         if (Input.GetKeyUp(KeyCode.R))
         {
-            GameController.Instance.DoomGuy.GetComponent<MovePlayer>().ResetPlayer();
-            DemonController[] enemies = FindObjectsOfType<DemonController>();
+            GameController.Instance.DoomGuy.GetComponent<P_Movement>().ResetPlayer();
+            E_EnemyController[] enemies = FindObjectsOfType<E_EnemyController>();
 
             cam.transform.position = GameController.Instance.DoomGuy.transform.position;
             cam.transform.transform.position += Vector3.up * initialCamHeight;
             cameraLookUp = 0;
 
-            foreach (DemonController enemy in enemies)
+            foreach (E_EnemyController enemy in enemies)
             {
                 enemy.ResetMonster();
             }
+
+            Cheat.Code.ResetAllCheats();
         }
         #endregion
 
@@ -84,11 +86,11 @@ public class Inputs : MonoBehaviour
         else
             MovePlayer(Directions.Stopping);
 
-        if (Input.GetKey(KeyCode.Q))
-            TurnPlayer(Directions.Left, 1);
+        //if (Input.GetKey(KeyCode.Q))
+        //    MovePlayer(Directions.Left);
 
-        if (Input.GetKey(KeyCode.E))
-            TurnPlayer(Directions.Right, 1);
+        //if (Input.GetKey(KeyCode.E))
+        //    MovePlayer(Directions.Right);
 
         if (Input.GetKey(KeyCode.A))
             MovePlayer(Directions.StrafeLeft);
@@ -182,6 +184,16 @@ public class Inputs : MonoBehaviour
             }
         }
         #endregion
+
+        #region Cheats
+
+        if (Input.GetKeyDown(KeyCode.I)) Cheat.Code.Add("i");
+        if (Input.GetKeyDown(KeyCode.D)) Cheat.Code.Add("d");
+        if (Input.GetKeyDown(KeyCode.Q)) Cheat.Code.Add("q");
+        if (Input.GetKeyDown(KeyCode.K)) Cheat.Code.Add("k");
+        if (Input.GetKeyDown(KeyCode.F)) Cheat.Code.Add("f");
+        if (Input.GetKeyDown(KeyCode.A)) Cheat.Code.Add("a");
+        #endregion
     }
     #endregion
 
@@ -191,12 +203,12 @@ public class Inputs : MonoBehaviour
 
         playerMovement.GetInput(dir);
     }
-    void TurnPlayer(Directions dir, float sensitivity)
-    {
-        if (playerMovement == null) return;
+    //void TurnPlayer(Directions dir, float sensitivity)
+    //{
+    //    if (playerMovement == null) return;
 
-        playerMovement.TurnPlayer(dir, sensitivity);
-    }    
+    //    playerMovement.TurnPlayer(dir, sensitivity);
+    //}    
     void TurnCamera(Directions dir, float cursorMoveDistance)
     {
         #region Properties

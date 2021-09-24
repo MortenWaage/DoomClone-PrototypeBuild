@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class WeaponAnimator : MonoBehaviour, IWeapons
+public class W_Animator : MonoBehaviour, IWeapons
 {
     #region PROPERTIES
-    WeaponController pWeapon;
-    MovePlayer pMovement;
+    W_Controller pWeapon;
+    P_Movement pMovement;
 
     [SerializeField] Texture default_tex;
     [SerializeField] RawImage weaponDisplayTexture;
@@ -36,8 +36,8 @@ public class WeaponAnimator : MonoBehaviour, IWeapons
 
     private void Start()
     {
-        pWeapon = GetComponent<WeaponController>();
-        pMovement = GetComponent<MovePlayer>();
+        pWeapon = GetComponent<W_Controller>();
+        pMovement = GetComponent<P_Movement>();
 
         weaponDisplayTexture.texture = default_tex;
         weaponEffectTexture.texture = default_tex;
@@ -168,7 +168,7 @@ public class WeaponAnimator : MonoBehaviour, IWeapons
 
     #endregion
 
-    public void SetController(WeaponController _controller)
+    public void SetController(W_Controller _controller)
     {
         // DUMMY FUNCTION
     }

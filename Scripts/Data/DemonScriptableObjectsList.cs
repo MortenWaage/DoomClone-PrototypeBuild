@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class DemonScriptableObjectsList : MonoBehaviour
 {
-    [SerializeField] DemonData RomerosHead;
-    [SerializeField] DemonData Rifleman;
-    [SerializeField] DemonData Imp;
-    [SerializeField] DemonData Pinky;
-    [SerializeField] DemonData Experimental;
+    [SerializeField] E_Data RomerosHead;
+    [SerializeField] E_Data Rifleman;
+    [SerializeField] E_Data Imp;
+    [SerializeField] E_Data Pinky;
+    [SerializeField] E_Data Experimental;
 
-    public DemonData SetDemonTypeData(Demons.DemonType type)
+    public E_Data SetDemonTypeData(Demons.DemonType type)
     {
         if (type == Demons.DemonType.Rifleman) return Rifleman;
         if (type == Demons.DemonType.Imp) return Imp;

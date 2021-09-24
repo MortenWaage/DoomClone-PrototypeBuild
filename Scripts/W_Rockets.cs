@@ -7,7 +7,7 @@ public class W_Rockets : MonoBehaviour, IWeapons
     [SerializeField] GameObject RocketPrefab;
 
     Weapons.WeaponType type;
-    WeaponController controller;
+    W_Controller controller;
 
     AudioSource audio;
     Camera cam;
@@ -93,7 +93,7 @@ public class W_Rockets : MonoBehaviour, IWeapons
         controller.Tex_Impact = tex_weapon;
     }
 
-    public void SetController(WeaponController _controller)
+    public void SetController(W_Controller _controller)
     {
         controller = _controller;
     }

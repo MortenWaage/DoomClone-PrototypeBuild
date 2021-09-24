@@ -1,16 +1,13 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class W_Pistol : MonoBehaviour, IWeapons
+public class W_Chaingun : MonoBehaviour, IWeapons
 {
     Weapons.WeaponType type;
-    WeaponController controller;
+    W_Controller controller;
 
     AudioSource audio;
-
-    [SerializeField] LayerMask hittablesLayer;
 
     bool isActiveWeapon = false;
 
@@ -18,26 +15,24 @@ public class W_Pistol : MonoBehaviour, IWeapons
     [SerializeField] Texture[] tex_effect;
     [SerializeField] Texture[] tex_impact;
 
-    float shotsPerMinute = 150;
+    float shotsPerMinute = 265; // 530 total. Divided on number of shots
     int damage = 5;
     int damageRolls = 3;
-    int ammoPerShot = 1;
-    int numberOfShots = 1;
-    float projectileSpread = 0; // In degrees
+    int ammoPerShot = 2;
+    int numberOfShots = 2;
+    float projectileSpread = 2f; // In degrees
 
     Vector3 projectileOrigin;
     private void Start()
     {
-        type = Weapons.WeaponType.Pistol;
+        type = Weapons.WeaponType.Chaingun;
         audio = GetComponent<AudioSource>();
         StartCoroutine("Initialize");
     }
-
     IEnumerator Initialize()
     {
-        yield return new WaitForEndOfFrame();            
-    }
-
+        yield return new WaitForEndOfFrame();
+    }    
     public void Shoot()
     {
         if (!isActiveWeapon) return;
@@ -45,12 +40,11 @@ public class W_Pistol : MonoBehaviour, IWeapons
         float animationSpeed = 60 / shotsPerMinute;
 
         if (!audio.isPlaying) audio.Play();
-
         controller.RemoveAmmo(ammoPerShot);
 
         for (int i = 0; i < numberOfShots; i++)
         {
-            Vector3 forwardDirection = W_FindTarget.GetBulletSpread(controller.cam.transform, projectileSpread);
+            Vector3 forwardDirection = W_TargetMethods.GetBulletSpread(controller.cam.transform, projectileSpread);
             FireProjectile(forwardDirection);            
         }
 
@@ -60,18 +54,18 @@ public class W_Pistol : MonoBehaviour, IWeapons
     private void FireProjectile(Vector3 forwardDirection)
     {
         projectileOrigin = controller.cam.transform.position;
-        RaycastHit hit = W_FindTarget.WeaponHitScan(projectileOrigin, forwardDirection, Mathf.Infinity);
+        RaycastHit hit = W_TargetMethods.WeaponHitScan(projectileOrigin, forwardDirection, Mathf.Infinity);
 
         if (hit.collider == null) return;
 
         #region Check Against Map Geometry
-        if (W_FindTarget.HitMapGeometry(hit, controller.cam.transform.position, type))
+        if (W_TargetMethods.HitMapGeometry(hit, controller.cam.transform.position, type))
             return;
 
         #endregion
 
         #region Check Against Attackbles
-        IHittable target = W_FindTarget.AttackableFromCollider(hit);
+        IHittable target = W_TargetMethods.AttackableFromCollider(hit);
         if (target != null) target.ApplyDamage(CalculateDamage());
 
         #endregion
@@ -92,13 +86,12 @@ public class W_Pistol : MonoBehaviour, IWeapons
         controller.Tex_Effect = tex_weapon;
         controller.Tex_Impact = tex_weapon;
     }
-    public void SetController(WeaponController _controller)
+    public void SetController(W_Controller _controller)
     {
         controller = _controller;
     }
-
     public void SeizeFire()
     {
-
+        audio.Stop();
     }
 }

@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WeaponController : MonoBehaviour
+public class W_Controller : MonoBehaviour
 {
     public Camera cam;
 
     #region PROPERTIES
     public Weapons.WeaponState State { get; private set; }
     public Weapons.WeaponType equippedWeapon;
-    public WeaponAnimator wepAnimator { get; private set; }
+    public W_Animator wepAnimator { get; private set; }
     IWeapons wepAnimatorInterface;
     public float WeaponSwapDuration { get; private set; } = 1f;
 
@@ -23,10 +23,10 @@ public class WeaponController : MonoBehaviour
     int Ammo_Cell = 0;
     int Ammo_Rockets = 12;
 
-    int Ammo_Clip_Max = 80;
+    int Ammo_Clip_Max = 200;
     int Ammo_Shell_Max = 50;
-    int Ammo_Cell_Max = 120;
-    int Ammo_Rockets_Max = 30;
+    int Ammo_Cell_Max = 300;
+    int Ammo_Rockets_Max = 50;
 
     public Texture[] Tex_Weapon { get => tex_weapon; set => tex_weapon = value; }
     public Texture[] Tex_Effect { get => tex_effect; set => tex_effect = value; }
@@ -63,7 +63,7 @@ public class WeaponController : MonoBehaviour
 
         State = Weapons.WeaponState.Free;
 
-        wepAnimator = GetComponent<WeaponAnimator>();
+        wepAnimator = GetComponent<W_Animator>();
         wepAnimatorInterface = wepAnimator.GetComponent<IWeapons>();
 
         SetWeaponInterfaces();       
@@ -101,22 +101,6 @@ public class WeaponController : MonoBehaviour
         else if (equippedWeapon == Weapons.WeaponType.Rocket)
         {
             Ammo_Rockets -= ammoPerShot;
-        }
-    }
-
-    private void RemoveAmmo()
-    {
-        if (equippedWeapon == Weapons.WeaponType.Pistol || equippedWeapon == Weapons.WeaponType.Chaingun)
-        {
-            Ammo_Clip--;
-        }
-        else if (equippedWeapon == Weapons.WeaponType.Shotgun)
-        {
-            Ammo_Shell--;
-        }
-        else if (equippedWeapon == Weapons.WeaponType.Rocket)
-        {
-            Ammo_Rockets--;
         }
     }
 
@@ -266,6 +250,17 @@ public class WeaponController : MonoBehaviour
         */
 
         UI_UpdateWeaponType();
-            UI_UpdateAmmo();
+        UI_UpdateAmmo();
+    }
+
+    public void MaxAmmo()
+    {
+        Ammo_Clip = Ammo_Clip_Max;
+        Ammo_Shell = Ammo_Shell_Max;
+        Ammo_Cell = Ammo_Cell_Max;
+        Ammo_Rockets = Ammo_Rockets_Max;
+
+        UI_UpdateWeaponType();
+        UI_UpdateAmmo();
     }
 }

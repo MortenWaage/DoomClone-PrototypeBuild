@@ -3,10 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MovePlayer : MonoBehaviour, IMovement
+public class P_Movement : MonoBehaviour, IMovement
 {
     public bool IsDead { get; set; } = false;
     Camera cam;
+    ICamera camController;
 
     #region PROPERTIES
     enum RayOffset { FRONT, BACK }
@@ -58,6 +59,7 @@ public class MovePlayer : MonoBehaviour, IMovement
     {
         GameController.Instance.DoomGuy = gameObject;
         cam = Camera.main;
+        camController = GetComponent<ICamera>();
         collider = GetComponent<Collider>();
         state = MoveState.Free;
 
@@ -122,6 +124,8 @@ public class MovePlayer : MonoBehaviour, IMovement
         {
             if (state != MoveState.Falling && state != MoveState.OutOfBounds)
                 ChangeState(MoveState.Stopping);
+
+            camController.ResetCameraTilt();
         }
         else
         {
@@ -141,16 +145,14 @@ public class MovePlayer : MonoBehaviour, IMovement
             if (dir == Inputs.Directions.StrafeRight)
                 velocity += transform.right;
 
+            camController.ApplyCameraTilt(velocity, dir);
+
             velocity.Normalize();
         }
     }
     #endregion
 
     #region RAYCASTING_FUNCTIONS
-
-    /*----------------------------*
-    *          RAYCASTS           *
-    *-----------------------------*/
 
     bool HitObstacle()
     {
@@ -161,15 +163,15 @@ public class MovePlayer : MonoBehaviour, IMovement
 
         return hitObstacle;
     }
-
     private void AlignWithGround()
     {
         Vector3 rayCastOrigin = transform.position + velocity.normalized;
         RaycastHit hit;
 
-        float range = collider.bounds.extents.y * boundsExtend;
+        float range = collider.bounds.extents.y;
 
-        bool insideGround = (Physics.Raycast(rayCastOrigin, Vector3.down, out hit, range, groundLayer));
+        /*bool insideGround = (*/
+        Physics.Raycast(rayCastOrigin, Vector3.down, out hit, range, groundLayer)/*)*/;
 
         if (hit.collider != null)
         {
@@ -256,11 +258,6 @@ public class MovePlayer : MonoBehaviour, IMovement
     #endregion
 
     #region HELPER_FUNCTIONS
-    /*-----------------------------*
-     *       HELPER FUNCTIONS      *
-     *-----------------------------*/
-
-
     void ChangeState(MoveState newState)
     {
         if (state != newState)
@@ -268,7 +265,6 @@ public class MovePlayer : MonoBehaviour, IMovement
             state = newState;
         }
     }
-
     public void ResetPlayer()
     {
         Debug.Log("Resetting Player");
@@ -277,34 +273,10 @@ public class MovePlayer : MonoBehaviour, IMovement
         transform.rotation = GameController.Instance.SpawnPoint.transform.rotation;
         velocity = Vector3.zero;
 
-        GetComponent<WeaponController>().ResetWeapons();
-        GetComponent<PlayerVitals>().ResetVitals();
+        GetComponent<W_Controller>().ResetWeapons();
+        GetComponent<P_Vitals>().ResetVitals();
 
     }
-
-    #endregion
-
-    #region GIZMOS
-    /*-----------------------------*
-     *          GIZMOS             *
-     *-----------------------------*/
-
-
-    [SerializeField] [Range(0, 5f)] float boundsExtend = 1; // offsets the distance for the ground check
-    void OnDrawGizmos()
-    {
-        // Quit if in Editor
-        if (!Application.isPlaying) return;
-
-        // On Ground
-        Gizmos.color = Color.red;
-
-        Vector3 lineStart = transform.position + velocity.normalized;
-        Vector3 lineEnd = transform.position + (Vector3.down * collider.bounds.extents.y * boundsExtend);
-
-        Gizmos.DrawLine(lineStart, lineEnd);
-    }
-
     #endregion
 
     #region DECREPATED_FUNCTIONS

@@ -9,8 +9,9 @@ public class U_Portrait : MonoBehaviour, IPortrait
     [SerializeField] RawImage portrait;
 
     int portraitIndex = 1;
+    int godMode = 4; // index 4 of texture array
     float portraitChangeFrequency = 1f;
-    float portraitTimer = 1f;
+    float portraitTimer = 1f;    
 
     bool isDead = false;
         
@@ -31,7 +32,7 @@ public class U_Portrait : MonoBehaviour, IPortrait
             else portraitIndex = 0;
         }
 
-        portrait.texture = portraitTextures[portraitIndex];
+        portrait.texture = Cheat.Code.IsGodMode ? portraitTextures[godMode] : portraitTextures[portraitIndex];
     }
 
     public void PlayerDied()

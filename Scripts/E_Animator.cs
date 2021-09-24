@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public class DemonAnimator : MonoBehaviour
+public class E_Animator : MonoBehaviour
 {
     Animation.Type currentAnimation;
     
-    DemonController demon;
+    E_EnemyController demon;
     MeshRenderer rend;
     public AnimationQueue animations { get; private set; }
     public Texture[] animationSprites;
@@ -32,7 +32,7 @@ public class DemonAnimator : MonoBehaviour
     {      
         animations = new AnimationQueue();
         rend = GetComponent<MeshRenderer>();
-        demon = GetComponentInParent<DemonController>();
+        demon = GetComponentInParent<E_EnemyController>();
 
         currentAnimation = Animation.Type.NONE;
     }

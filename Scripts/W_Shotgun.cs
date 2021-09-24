@@ -5,7 +5,7 @@ using UnityEngine;
 public class W_Shotgun : MonoBehaviour, IWeapons
 {
     Weapons.WeaponType type;
-    WeaponController controller;
+    W_Controller controller;
     
     AudioSource audio;
     Camera cam;
@@ -50,7 +50,7 @@ public class W_Shotgun : MonoBehaviour, IWeapons
 
         for (int i = 0; i < numberOfShots; i++)
         {
-            Vector3 forwardDirection = W_FindTarget.GetBulletSpread(controller.cam.transform, projectileSpread);
+            Vector3 forwardDirection = W_TargetMethods.GetBulletSpread(controller.cam.transform, projectileSpread);
             FireProjectile(forwardDirection);
             
         }
@@ -61,18 +61,18 @@ public class W_Shotgun : MonoBehaviour, IWeapons
     private void FireProjectile(Vector3 forwardDirection)
     {
         projectileOrigin = controller.cam.transform.position;
-        RaycastHit hit = W_FindTarget.WeaponHitScan(projectileOrigin, forwardDirection, Mathf.Infinity);
+        RaycastHit hit = W_TargetMethods.WeaponHitScan(projectileOrigin, forwardDirection, Mathf.Infinity);
 
         if (hit.collider == null) return;
 
         #region Check Against Map Geometry
-        if (W_FindTarget.HitMapGeometry(hit, controller.cam.transform.position, type))
+        if (W_TargetMethods.HitMapGeometry(hit, controller.cam.transform.position, type))
             return;
 
         #endregion
 
         #region Check Against Attackbles
-        IHittable target = W_FindTarget.AttackableFromCollider(hit);
+        IHittable target = W_TargetMethods.AttackableFromCollider(hit);
         if (target != null) target.ApplyDamage(CalculateDamage());
 
         #endregion
@@ -95,7 +95,7 @@ public class W_Shotgun : MonoBehaviour, IWeapons
         controller.Tex_Impact = tex_weapon;
     }
 
-    public void SetController(WeaponController _controller)
+    public void SetController(W_Controller _controller)
     {
         controller = _controller;
     }

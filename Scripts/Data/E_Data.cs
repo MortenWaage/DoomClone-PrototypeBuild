@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "DemonData", menuName = "CreatureData/Demons", order = 1)]
-public class DemonData : ScriptableObject
+public class E_Data : ScriptableObject
 {
     [Header("Collision Properties")]
     public LayerMask groundLayer;

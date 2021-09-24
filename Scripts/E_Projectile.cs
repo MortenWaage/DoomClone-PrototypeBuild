@@ -41,21 +41,25 @@ public class E_Projectile : MonoBehaviour
     }
     #endregion
 
-    private void OnCollisionEnter(Collision collision)
+    void OnCollisionEnter(Collision collision)
     {
-        Debug.Log($"Demon {gameObject.name}'s projectile collided with {collision.gameObject.layer}");
+        Debug.Log(collision.collider.gameObject.name);
 
         if (collision.collider.gameObject.layer == LayerMask.NameToLayer(Layers.Projectile)) return;
 
-        PlayerVitals vitals = collision.collider.GetComponent<PlayerVitals>();
-
-        if (vitals == null) { Debug.Log("No Vitals found on target"); return; }
-
-        P_CauseDamage(vitals);
+        if (collision.collider.gameObject.layer == LayerMask.NameToLayer(Layers.DoomGuy))
+        {
+            P_Vitals vitals = collision.collider.GetComponent<P_Vitals>();
+            if (vitals != null)
+                P_CauseDamage(vitals);
+        }
+        else if (collision.collider.gameObject.layer == LayerMask.NameToLayer(Layers.Map))
+        {
+            Destroy(gameObject);
+        } 
     }
     public void SetAttributes(Texture[] tex, int dam, int damRoll, float pSpeed)
     {
-        Debug.Log("Setting Attributes on P");
         damage = dam;
         damageRolls = damRoll;
         projectileSpeed = pSpeed;
@@ -67,7 +71,7 @@ public class E_Projectile : MonoBehaviour
 
         initialized = true;
     }
-    void P_CauseDamage(PlayerVitals vitals)
+    void P_CauseDamage(P_Vitals vitals)
     {
         int _damage = CalculateDamage();
 

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DemonController : MonoBehaviour, IHittable
+public class E_EnemyController : MonoBehaviour, IHittable
 {
     #region Properties
 
@@ -17,8 +17,8 @@ public class DemonController : MonoBehaviour, IHittable
     #endregion
 
     #region Components and Prefabs
-    DemonData demonData;
-    DemonAnimator animator;
+    E_Data demonData;
+    E_Animator animator;
     Collider collider;
     MeshRenderer renderer;
     GameObject projectilePrefab;
@@ -100,7 +100,7 @@ public class DemonController : MonoBehaviour, IHittable
     private void Start()
     {
         demonData = GameController.Instance.demons.SetDemonTypeData(type);
-        animator = GetComponentInChildren<DemonAnimator>();
+        animator = GetComponentInChildren<E_Animator>();
 
         spawnPosition = transform.position;
 
@@ -143,8 +143,7 @@ public class DemonController : MonoBehaviour, IHittable
             #region Case.Staggered:
             case Demons.MonsterState.Staggered:
 
-                PainDuration = PainDuration > 0 ? (PainDuration - 1 * Time.deltaTime) : 0;
-                
+                PainDuration = PainDuration > 0 ? (PainDuration - 1 * Time.deltaTime) : 0;                
                 if (PainDuration <= 0) ChangeState(Demons.MonsterState.Wander);                   
 
                 break;
@@ -174,13 +173,13 @@ public class DemonController : MonoBehaviour, IHittable
     {
         if (isPassive) return false;
 
-        if (!IsInRange) return false;
+        if (!InSightRange) return false;
 
-        if (!InLineOfSight) return false;
+        if (enableMovementOnAwake) WakeUp();
 
-        if (!In_Attack_Range) return false;
+        if (SightIsBlocked) return false;        
 
-        if (enableMovementOnAwake) EnableMovement();
+        if (!In_Attack_Range) return false;        
 
         if (S_Pain)
         {
@@ -192,8 +191,7 @@ public class DemonController : MonoBehaviour, IHittable
 
         return true;
     }
-
-    private void EnableMovement()
+    void WakeUp()
     {
         if (!enableMovementOnAwake) return;
 
@@ -204,7 +202,7 @@ public class DemonController : MonoBehaviour, IHittable
     void A_DecideAttackType()
     {
         reactionTime = maxReactionTime;
-        float distance = W_FindTarget.GetDistanceToTarget(transform.position, CurrentTarget.transform.position) - 64;
+        float distance = W_TargetMethods.GetDistanceToTarget(transform.position, CurrentTarget.transform.position) - 64;
 
         // if enemy does not have ranged attack
         if (attackRange == -1) distance -= 128;
@@ -261,7 +259,7 @@ public class DemonController : MonoBehaviour, IHittable
 
             if (hit.collider != null)
             {
-                PlayerVitals vitals = hit.collider.GetComponent<PlayerVitals>();
+                P_Vitals vitals = hit.collider.GetComponent<P_Vitals>();
 
                 if (vitals == null) { Debug.Log("No Vitals found on target"); return; }
 
@@ -300,7 +298,7 @@ public class DemonController : MonoBehaviour, IHittable
 
     private void ApplyHurtEffect()
     {
-        Vector3 impactPoint = W_FindTarget.GetRandomImpactOffset(transform.position, initialSize.x * 0.2f, initialSize.y * 0.2f);
+        Vector3 impactPoint = W_TargetMethods.GetRandomImpactOffset(transform.position, initialSize.x * 0.2f, initialSize.y * 0.2f);
         Vector3 offset = (transform.position - GameController.Instance.DoomGuy.transform.position).normalized * 2f;
         GameController.Instance.w_effects.PlayDamageEffect(impactPoint - offset, type);
     }
@@ -359,7 +357,7 @@ public class DemonController : MonoBehaviour, IHittable
         }
         set { }
     }
-    bool IsInRange
+    bool InSightRange
     {
         get
         {
@@ -368,12 +366,12 @@ public class DemonController : MonoBehaviour, IHittable
         }
         set { }
     }
-    bool InLineOfSight
+    bool SightIsBlocked
     {
         get
         {
-            if (CurrentTarget == null) return false;
-            return W_FindTarget.InLineOfSight(transform.position, CurrentTarget.transform.position);
+            if (CurrentTarget == null) return true;
+            return !W_TargetMethods.InLineOfSight(transform.position, CurrentTarget.transform.position);
         }
         set { }
     }
@@ -389,6 +387,8 @@ public class DemonController : MonoBehaviour, IHittable
     #endregion
 
     #region MOVEMENT
+
+    Vector3 lastBlockedDirection = Vector3.zero;
     private void Wander()
     {
         if (!useMovement) return;
@@ -399,17 +399,48 @@ public class DemonController : MonoBehaviour, IHittable
 
         if (HitObstacle() || OnLedge())
         {
+            lastBlockedDirection = currentDirection;
             currentDirection = GetNewDirection();
             return;
         }
+
+        if (CanMoveInBlockedDirection())
+        {
+            currentDirection = lastBlockedDirection;
+            lastBlockedDirection = Vector3.zero;
+        }        
 
         transform.position += currentDirection * moveSpeed * Time.deltaTime;
 
         MoveUpSlope();
 
     }
-    bool HitObstacle()
+    float checkBlockedDirectionTime = 0.5f;
+    bool CanMoveInBlockedDirection()
     {
+        if (lastBlockedDirection == Vector3.zero) return false;
+        if (checkBlockedDirectionTime > 0)
+        {
+            checkBlockedDirectionTime -= 0.5f * Time.deltaTime;
+            return false;
+        }
+
+        checkBlockedDirectionTime = 0.5f;
+
+        Vector3 underDemon = transform.position + (Vector3.down * (collider.bounds.extents.y + 0.1f));
+        Vector3 rayStartPosition = underDemon + (Vector3.up * obstacleTraversionHeight);
+        bool blockedForward = (Physics.Raycast(rayStartPosition, lastBlockedDirection, 2f, groundLayer));
+
+        Vector3 direction = currentDirection.normalized;
+        rayStartPosition = transform.position + lastBlockedDirection;
+        float groundCheckLength = stairsTraversionHeight + (collider.bounds.extents.y + 0.1f);
+        bool groundIsForward = (Physics.Raycast(rayStartPosition, Vector3.down, groundCheckLength, groundLayer));
+
+        if (blockedForward || !groundIsForward) return false;
+        else return true;
+    }
+    bool HitObstacle()
+    {       
         Vector3 direction = currentDirection.normalized;
         Vector3 underDemon = transform.position + (Vector3.down * (collider.bounds.extents.y + 0.1f));
         Vector3 rayStartPosition = underDemon + (Vector3.up * obstacleTraversionHeight);
@@ -431,6 +462,7 @@ public class DemonController : MonoBehaviour, IHittable
     }
     Vector3 GetNewDirection()
     {
+
         int index = Mathf.FloorToInt(GameController.Instance.Rntable.P_Random() / 64);
         return Directions.All[index];
     }

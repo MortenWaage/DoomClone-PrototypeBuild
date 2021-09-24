@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class W_FindTarget
+public static class W_TargetMethods
 {
     public static bool InLineOfSight(Vector3 observer, Vector3 target)
     {

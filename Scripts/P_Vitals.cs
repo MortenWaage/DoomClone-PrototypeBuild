@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerVitals : MonoBehaviour, IHittable
+public class P_Vitals : MonoBehaviour, IHittable
 {
     [SerializeField] int health = 100;
     [SerializeField] int armor = 100;
@@ -11,7 +11,7 @@ public class PlayerVitals : MonoBehaviour, IHittable
     int maxHealth;
     int maxArmor = 200;
 
-    MovePlayer mover;
+    P_Movement mover;
 
     private void Start()
     {
@@ -23,11 +23,13 @@ public class PlayerVitals : MonoBehaviour, IHittable
         float armorPercentage = ((float)armor / (float)maxArmor);
         GameController.Instance.Interface.UpdateArmor(armorPercentage);
 
-        mover = GetComponent<MovePlayer>();
+        mover = GetComponent<P_Movement>();
     }
 
     public void ApplyDamage(int _damage)
     {
+        if (Cheat.Code.IsGodMode) return;
+
         int damage = _damage;
 
         float absorbed = (float)_damage / 3f;
