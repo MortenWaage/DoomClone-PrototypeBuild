@@ -64,16 +64,13 @@ public class W_Animator : MonoBehaviour, IWeapons
 
                 break;
         }
-
     }
 
     #region WEAPON_WOBBLE
 
-    [SerializeField] [Range(0f, 1.5f)] float _speed = 1f;
     private void PlayWobbleAnimation(Vector2 wPos)
     {
-
-        wPos.x += wobbleSpeed * dirX * _speed; // * pMovement.PlayerSpeed;
+        wPos.x += wobbleSpeed * dirX;
 
         if (wPos.x <= initialPos.x - wobbleX) dirX = 1;
         else if (wPos.x >= initialPos.x + wobbleX) dirX = -1;
@@ -101,15 +98,24 @@ public class W_Animator : MonoBehaviour, IWeapons
         if ( (wPos.y + margin) < initialPos.y) wPos.y += wobbleSpeed * 1;
         else if ( (wPos.y - margin) > initialPos.y) wPos.y -= wobbleSpeed * 1;
 
+        SetTexturePosition(wPos);
+    }
+
+    [SerializeField] Vector2 effectOffsetVector = Vector2.zero;
+    private void SetTexturePosition(Vector2 wPos)
+    {
         weaponDisplayTexture.transform.position = wPos;
+        weaponEffectTexture.transform.position = wPos + effectOffsetVector;
     }
     #endregion
 
     #region INTERFACE_METHODS
     public void Shoot()
     {
-        weaponDisplayTexture.transform.position = initialPos;
+        SetTexturePosition(initialPos);
+
         weaponDisplayTexture.texture = pWeapon.Tex_Weapon[0];
+        weaponEffectTexture.texture = pWeapon.Tex_Effect[0];
     }
     public void SeizeFire()
     {
@@ -119,17 +125,22 @@ public class W_Animator : MonoBehaviour, IWeapons
     {
         StopAllCoroutines();
         StartCoroutine("ChangeWeaponSwapDirection");
-        distanceToOffScreen = 0 - weaponDisplayTexture.transform.position.y;
+
+        distanceToOffScreen = 0 - ( weaponDisplayTexture.transform.position.y + 120 );
     }
     #endregion
 
     #region ANIMATIONS
+
+
     void PlaySwapAnimation()
     {
         float animationSpeed = (distanceToOffScreen / pWeapon.WeaponSwapDuration) * 2;
 
         wPos.y += animationSpeed * Time.deltaTime * swapDirection;
+
         weaponDisplayTexture.transform.position = wPos;
+        weaponEffectTexture.transform.position = wPos;
     }
     public void PlayShootAnimation(float animationSpeed)
     {
@@ -137,6 +148,9 @@ public class W_Animator : MonoBehaviour, IWeapons
         currentFrame = 0;
 
         frameDuration = animationSpeed / (pWeapon.Tex_Weapon.Length);
+
+        weaponEffectTexture.transform.position = weaponDisplayTexture.transform.position;
+        weaponEffectTexture.enabled = false;
         StartCoroutine("ShootAnimation", frameDuration);
     }
 
@@ -145,7 +159,10 @@ public class W_Animator : MonoBehaviour, IWeapons
     {
         swapDirection = 1;
         yield return new WaitForSeconds(pWeapon.WeaponSwapDuration * 0.5f);
+
         weaponDisplayTexture.texture = pWeapon.Tex_Weapon[0];
+        weaponEffectTexture.texture = pWeapon.Tex_Effect[0];
+
         swapDirection = -1;
     }
     IEnumerator ShootAnimation(float frameDuration)
@@ -162,7 +179,11 @@ public class W_Animator : MonoBehaviour, IWeapons
             StartCoroutine("ShootAnimation", frameDuration);
         }
         else
+        {
             weaponDisplayTexture.texture = pWeapon.Tex_Weapon[0];
+            weaponEffectTexture.enabled = false;
+        }
+            
     }
     #endregion
 

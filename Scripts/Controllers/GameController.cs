@@ -9,6 +9,8 @@ public class GameController : MonoBehaviour
     public LayerMask LayerMaskAttackable;
     public LayerMask TestLayer;
 
+    public List<GameObject> map_Items;
+
     [HideInInspector] public W_ImpactEffects w_effects;
 
     [SerializeField] [Range(0, 1f)] float volume = 0.5f;
@@ -24,18 +26,22 @@ public class GameController : MonoBehaviour
 
     public InterfaceController Interface;
 
-
     public IScreenGlow screenGlowHurt;
     public IPortrait portrait;
 
     [SerializeField] GameObject player_spawn_1;
 
     public DemonScriptableObjectsList demons;
+    public ItemScriptableObjectsList items;
 
     public GameObject SpawnPoint { get; private set; }
 
     void Awake()
     {
+        AudioListener.volume = 0.2f;
+
+        map_Items = new List<GameObject>();
+
         w_effects = GetComponent<W_ImpactEffects>();
 
         rng = new RNG();
@@ -56,16 +62,25 @@ public class GameController : MonoBehaviour
 
         debug = GetComponentInChildren<DebugInfo>();
         demons = GetComponentInChildren<DemonScriptableObjectsList>();
+        items = GetComponentInChildren<ItemScriptableObjectsList>();
         screenGlowHurt = GetComponentInChildren<IScreenGlow>();
         portrait = GetComponentInChildren<IPortrait>();
 
         Interface = GetComponentInChildren<InterfaceController>();
-
     }
 
-    public void PlayScreenGlow(int damage)
+    public void ResetItems()
     {
-        screenGlowHurt.PlayScreenGlow(damage);
+        foreach(GameObject item in map_Items)
+        {
+            var _item = item.GetComponent<O_Lootable_Object>();
+            _item.ToggleObject(true);
+        }
+    }
+
+    public void PlayScreenGlow(Color col, int damage)
+    {
+        screenGlowHurt.PlayScreenGlow(col, damage);
     }
     private void OnValidate()
     {

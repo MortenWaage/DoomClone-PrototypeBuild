@@ -28,6 +28,8 @@ public class W_Controller : MonoBehaviour
     int Ammo_Cell_Max = 300;
     int Ammo_Rockets_Max = 50;
 
+    int Backpack = 0;
+
     public Texture[] Tex_Weapon { get => tex_weapon; set => tex_weapon = value; }
     public Texture[] Tex_Effect { get => tex_effect; set => tex_effect = value; }
     public Texture[] Tex_Impact { get => tex_impact; set => tex_impact = value; }
@@ -68,12 +70,10 @@ public class W_Controller : MonoBehaviour
 
         SetWeaponInterfaces();       
     }
-
     void ChangeState(Weapons.WeaponState _newState)
     {
         State = _newState;
     }
-
     public void Shoot()
     {
         if (OutOfAmmo()) return;
@@ -87,7 +87,6 @@ public class W_Controller : MonoBehaviour
 
         UI_UpdateAmmo();
     }
-
     public void RemoveAmmo(int ammoPerShot)
     {
         if (equippedWeapon == Weapons.WeaponType.Pistol || equippedWeapon == Weapons.WeaponType.Chaingun)
@@ -103,7 +102,6 @@ public class W_Controller : MonoBehaviour
             Ammo_Rockets -= ammoPerShot;
         }
     }
-
     private bool OutOfAmmo()
     {
         if (equippedWeapon == Weapons.WeaponType.Pistol || equippedWeapon == Weapons.WeaponType.Chaingun)
@@ -121,13 +119,11 @@ public class W_Controller : MonoBehaviour
 
         return false;
     }
-
     public void SeizeFire()
     {
         foreach (IWeapons weapon in weaponsList)
             weapon.SeizeFire();
     }
-
     public void SwapWeapon(Weapons.WeaponType _type)
     {
         ChangeState(Weapons.WeaponState.Swapping);
@@ -143,12 +139,10 @@ public class W_Controller : MonoBehaviour
 
         StartCoroutine("CompleteWeaponSwap");
     }
-
     private void UI_UpdateWeaponType()
     {
         GameController.Instance.Interface.UpdateType(equippedWeapon);
     }
-
     void UI_UpdateAmmo()
     {
         if (equippedWeapon == Weapons.WeaponType.Pistol || equippedWeapon == Weapons.WeaponType.Chaingun)
@@ -165,7 +159,6 @@ public class W_Controller : MonoBehaviour
 
         GameController.Instance.Interface.UpdateOverview(_clip, _shell, _cell, _rock);
     }
-
     private void SetWeaponInterfaces()
     {
         weaponsList = new List<IWeapons>();
@@ -216,30 +209,26 @@ public class W_Controller : MonoBehaviour
             weapon.SetController(this);
         }            
     }
-
     public void SetShotCompletionTime(float animationSpeed)
     {
         StartCoroutine("CompleteShoot", animationSpeed);
-    }
-    
+    }    
     IEnumerator CompleteShoot(float animationSpeed)
     {
         yield return new WaitForSeconds(animationSpeed);
         ChangeState(Weapons.WeaponState.Free);
     }
-
     IEnumerator CompleteWeaponSwap()
     {
         yield return new WaitForSeconds(WeaponSwapDuration);
         ChangeState(Weapons.WeaponState.Free);
     }
-
     public void ResetWeapons()
     {
-        Ammo_Clip = 80;
-        Ammo_Shell = 24;
+        Ammo_Clip = 20;
+        Ammo_Shell = 0;
         Ammo_Cell = 0;
-        Ammo_Rockets = 12;
+        Ammo_Rockets = 0;
 
         /* defaults
 
@@ -252,6 +241,17 @@ public class W_Controller : MonoBehaviour
         UI_UpdateWeaponType();
         UI_UpdateAmmo();
     }
+    public void AddAmmo(int clip, int shell, int cell, int rocket, int backpack)
+    {
+        Ammo_Clip = Mathf.Min(Ammo_Clip + clip, Ammo_Clip_Max);
+        Ammo_Shell = Mathf.Min(Ammo_Shell + shell, Ammo_Shell_Max);
+        Ammo_Cell = Mathf.Min(Ammo_Cell + cell, Ammo_Cell_Max);
+        Ammo_Rockets = Mathf.Min(Ammo_Rockets + rocket, Ammo_Rockets_Max);
+        Backpack = Mathf.Min(Backpack + backpack, 1);
+
+        UI_UpdateAmmo();
+    }
+
 
     public void MaxAmmo()
     {

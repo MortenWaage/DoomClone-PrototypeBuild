@@ -89,7 +89,7 @@ public class W_Pistol : MonoBehaviour, IWeapons
         else { isActiveWeapon = false; return; }
 
         controller.Tex_Weapon = tex_weapon;
-        controller.Tex_Effect = tex_weapon;
+        controller.Tex_Effect = tex_effect;
         controller.Tex_Impact = tex_weapon;
     }
     public void SetController(W_Controller _controller)

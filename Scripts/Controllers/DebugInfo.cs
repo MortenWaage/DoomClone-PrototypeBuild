@@ -38,7 +38,7 @@ public class DebugInfo : MonoBehaviour
             newHeight.y -= (pos * height) - 20;
             text.transform.position = newHeight;
             text.text = "";
-
+            text.enabled = false;
             pos++;
         }
     }

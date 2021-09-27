@@ -10,6 +10,7 @@ public class Inputs : MonoBehaviour
     #region Properties
     W_Controller pWeapon;
     P_Movement pMovement;
+    P_Inventory pInventory;
     Camera cam;
 
     [SerializeField] [Range(0, 150f)] float mouseSensitivity = 1f;
@@ -30,7 +31,8 @@ public class Inputs : MonoBehaviour
 
         playerMovement = GameController.Instance.DoomGuy.GetComponent<IMovement>();
         pWeapon = GameController.Instance.DoomGuy.GetComponent<W_Controller>();
-        pMovement = GameController.Instance.DoomGuy.GetComponent<P_Movement>(); // Just for testing
+        pMovement = GameController.Instance.DoomGuy.GetComponent<P_Movement>();
+        pInventory = GameController.Instance.DoomGuy.GetComponent<P_Inventory>();
         pWeapon.SwapWeapon(Weapons.WeaponType.Pistol);
 
         isInitialized = true;
@@ -41,7 +43,8 @@ public class Inputs : MonoBehaviour
     {
         cam = Camera.main;        
         StartCoroutine("Initiate");
-    } 
+    }
+    public bool gameOver { get; set; } = false;
     void Update()
     {
         if (!isInitialized) return;
@@ -51,6 +54,7 @@ public class Inputs : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.R))
         {
             GameController.Instance.DoomGuy.GetComponent<P_Movement>().ResetPlayer();
+            GameController.Instance.ResetItems();
             E_EnemyController[] enemies = FindObjectsOfType<E_EnemyController>();
 
             cam.transform.position = GameController.Instance.DoomGuy.transform.position;
@@ -62,11 +66,13 @@ public class Inputs : MonoBehaviour
                 enemy.ResetMonster();
             }
 
+            GameController.Instance.Interface.EnableInterfaceAtRestart();
             Cheat.Code.ResetAllCheats();
         }
         #endregion
-
+        
         // No need for further inputs if player died.
+        if (gameOver) return;
         if (IsDead)
         {
             if (cam.transform.position.y > (GameController.Instance.DoomGuy.transform.position.y - GameController.Instance.DoomGuy.GetComponent<Collider>().bounds.extents.y) + 0.4f)
@@ -172,7 +178,7 @@ public class Inputs : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             RaycastHit hit;
-            float interactDistance = 5f;
+            float interactDistance = 7f;
 
             Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, interactDistance);
 
@@ -180,7 +186,7 @@ public class Inputs : MonoBehaviour
             {
                 var interactable = hit.collider.GetComponent<IInteractable>();
                 if (interactable != null)
-                    interactable.Interact(100);
+                    interactable.Interact(pInventory);
             }
         }
         #endregion
@@ -193,6 +199,8 @@ public class Inputs : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.K)) Cheat.Code.Add("k");
         if (Input.GetKeyDown(KeyCode.F)) Cheat.Code.Add("f");
         if (Input.GetKeyDown(KeyCode.A)) Cheat.Code.Add("a");
+        if (Input.GetKeyDown(KeyCode.S)) Cheat.Code.Add("s");
+        if (Input.GetKeyDown(KeyCode.P)) Cheat.Code.Add("p");
         #endregion
     }
     #endregion

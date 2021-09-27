@@ -4,5 +4,5 @@ using UnityEngine;
 
 public interface IScreenGlow
 {
-    void PlayScreenGlow(int damage);
+    void PlayScreenGlow(Color col, int damage);
 }

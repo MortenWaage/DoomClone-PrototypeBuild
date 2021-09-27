@@ -41,6 +41,7 @@ public static class Demons
         NONE,
         Rifle,
         ImpBolt,
+        BaronBolt,
         Shotgun,
     }
 }

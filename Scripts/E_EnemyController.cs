@@ -40,6 +40,7 @@ public class E_EnemyController : MonoBehaviour, IHittable
     #region Int, Float, Bool
     #region Bool
     public bool isInitialized { get; private set; } = false;
+    public bool IsDead { get => state == Demons.MonsterState.Dead; private set { } }
     bool S_Pain = false;
     #endregion
     #region Int
@@ -69,7 +70,7 @@ public class E_EnemyController : MonoBehaviour, IHittable
 
     #region Audio and Textures
     AudioSource demonAudio;
-    AudioClip aud_hurt;
+    AudioClip[] soundEffects;
 
     Texture[] projectileSprites;
     #endregion
@@ -236,6 +237,10 @@ public class E_EnemyController : MonoBehaviour, IHittable
     {
         if (PlayerIsDead()) return;
 
+
+        PlayAudio("attack");
+
+
         if (attackType == Demons.AttackType.Hitscanner)     A_Projectile_Instant();
         else                                                A_Projectile_Travel();
 
@@ -244,7 +249,7 @@ public class E_EnemyController : MonoBehaviour, IHittable
             var _lookRotation = Quaternion.LookRotation(CurrentTarget.transform.position - transform.position).normalized;
 
             GameObject newProjectile = Instantiate(projectilePrefab, transform.position, _lookRotation);
-            E_Projectile projectile = newProjectile.GetComponent<E_Projectile>();
+            W_Projectile_Enemy projectile = newProjectile.GetComponent<W_Projectile_Enemy>();
 
             projectile.SetAttributes(projectileSprites, damage, damageRolls, demonData.projectileSpeed);
         }
@@ -276,6 +281,23 @@ public class E_EnemyController : MonoBehaviour, IHittable
             }
         }
     }
+
+    void PlayAudio(string sound)
+    {
+        if (sound == "hurt")
+        {
+            if (soundEffects.Length <= 0) return;
+            demonAudio.clip = soundEffects[0];
+            demonAudio.Play();
+        }
+        if (sound == "attack")
+        {
+            if (soundEffects.Length <= 1) return;
+            demonAudio.clip = soundEffects[1];
+            demonAudio.Play();
+        }
+    }
+
     void A_FaceTarget(bool isFacing)
     {
         A_Face_Target = isFacing;
@@ -287,7 +309,10 @@ public class E_EnemyController : MonoBehaviour, IHittable
     {
         if (state == Demons.MonsterState.Dead) return;
 
-        if (demonAudio.clip != null) demonAudio.Play();
+        if (demonAudio.clip != null)
+        {
+            PlayAudio("hurt");
+        }
 
         ApplyHurtEffect();
 
@@ -331,9 +356,6 @@ public class E_EnemyController : MonoBehaviour, IHittable
             PainDuration = staggeredDuration;
             S_Pain = true;
             animator.QueueAnimation(Animation.Type.Pain, false, 0, true);
-            //Debug.Log("Staggered");
-            //StopCoroutine("Stagger");
-            //StartCoroutine("Stagger");
         }
     }
     #endregion
@@ -389,6 +411,18 @@ public class E_EnemyController : MonoBehaviour, IHittable
     #region MOVEMENT
 
     Vector3 lastBlockedDirection = Vector3.zero;
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collider.gameObject.layer == LayerMask.NameToLayer(Layers.Map))
+        {
+            if (type == Demons.DemonType.Baron)
+                Debug.Log(gameObject.name + " Collided with wall");
+
+            lastBlockedDirection = currentDirection;
+            currentDirection = GetNewDirection();
+        }
+    }
     private void Wander()
     {
         if (!useMovement) return;
@@ -429,40 +463,63 @@ public class E_EnemyController : MonoBehaviour, IHittable
 
         Vector3 underDemon = transform.position + (Vector3.down * (collider.bounds.extents.y + 0.1f));
         Vector3 rayStartPosition = underDemon + (Vector3.up * obstacleTraversionHeight);
-        bool blockedForward = (Physics.Raycast(rayStartPosition, lastBlockedDirection, 2f, groundLayer));
 
-        Vector3 direction = currentDirection.normalized;
-        rayStartPosition = transform.position + lastBlockedDirection;
+        RaycastHit hit;
+        if (!Physics.Raycast(rayStartPosition, lastBlockedDirection, out hit, initialSize.x))
+            return false;
+
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer(Layers.DoomGuy))
+            return false;
+
+        if (hit.collider.tag == "NuclearWaste")
+            return false;
+
+        rayStartPosition = transform.position + (lastBlockedDirection.normalized * initialSize.x);
         float groundCheckLength = stairsTraversionHeight + (collider.bounds.extents.y + 0.1f);
         bool groundIsForward = (Physics.Raycast(rayStartPosition, Vector3.down, groundCheckLength, groundLayer));
 
-        if (blockedForward || !groundIsForward) return false;
+        if (!groundIsForward) return false;
         else return true;
     }
     bool HitObstacle()
     {       
-        Vector3 direction = currentDirection.normalized;
+        Vector3 direction = currentDirection.normalized * (initialSize.x + 1f);
         Vector3 underDemon = transform.position + (Vector3.down * (collider.bounds.extents.y + 0.1f));
         Vector3 rayStartPosition = underDemon + (Vector3.up * obstacleTraversionHeight);
 
-        bool hitObstacle = (Physics.Raycast(rayStartPosition, direction, 2f, groundLayer));
+        RaycastHit hit;
+        if (!Physics.Raycast(rayStartPosition, direction, out hit, 2f))
+            return false;
+ 
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer(Layers.DoomGuy))
+            return true;
 
-        return hitObstacle;
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer(Layers.Map))
+            return true;
+
+        if (hit.collider.tag == "NuclearWaste")
+            return true;
+
+        return false;
     }
     [SerializeField] [Range(0, 10f)] float stairsTraversionHeight = 4f;
     bool OnLedge()
     {
-        Vector3 direction = currentDirection.normalized;
+        Vector3 direction = currentDirection.normalized * (initialSize.x + 1f); ;
         Vector3 rayStartPosition = transform.position + direction;
         float groundCheckLength = stairsTraversionHeight + (collider.bounds.extents.y + 0.1f);
 
-        bool groundIsForward = (Physics.Raycast(rayStartPosition, Vector3.down, groundCheckLength, groundLayer));
+        RaycastHit hit;
+        bool groundIsForward = (Physics.Raycast(rayStartPosition, Vector3.down, out hit, groundCheckLength, groundLayer));
+
+        if (groundIsForward)
+            if (hit.collider.CompareTag("NuclearWaste"))
+                return true;
 
         return !groundIsForward;
     }
     Vector3 GetNewDirection()
     {
-
         int index = Mathf.FloorToInt(GameController.Instance.Rntable.P_Random() / 64);
         return Directions.All[index];
     }
@@ -526,6 +583,7 @@ public class E_EnemyController : MonoBehaviour, IHittable
 
         #region Set Textures
         animator.animationSprites = demonData.animation_textures;
+        projectileSprites = new Texture[demonData.projectile_textures.Length];
         projectileSprites = demonData.projectile_textures;
 
         #endregion
@@ -565,7 +623,14 @@ public class E_EnemyController : MonoBehaviour, IHittable
         #endregion
 
         #region Audio
-        if (demonData.audioClips[0] != null) demonAudio.clip = demonData.audioClips[0];
+
+        int _numOfSounds = demonData.audioClips.Length;
+
+        soundEffects = new AudioClip[_numOfSounds];
+
+        for (int i = 0; i < _numOfSounds; i++)
+            soundEffects[i] = demonData.audioClips[i];
+
         #endregion
 
         #region Initialization

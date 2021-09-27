@@ -11,19 +11,30 @@ public class P_Vitals : MonoBehaviour, IHittable
     int maxHealth;
     int maxArmor = 200;
 
-    P_Movement mover;
+    bool environmentRecentlyApplied = false;
+    float environmentTimerCurrent;
+    float environmentTimerMax = 1.5f;
+
+    P_Movement pMovement;
 
     private void Start()
     {
+        environmentTimerCurrent = environmentTimerMax;
         maxHealth = health;
 
-        float healthPercentage = ((float)health / (float)maxHealth);
-        GameController.Instance.Interface.UpdateHealth(healthPercentage);
+        pMovement = GetComponent<P_Movement>();
+        UpdateUserInterface();
+    }
+    
+    void Update()
+    {
+        if (!environmentRecentlyApplied) return;
 
-        float armorPercentage = ((float)armor / (float)maxArmor);
-        GameController.Instance.Interface.UpdateArmor(armorPercentage);
-
-        mover = GetComponent<P_Movement>();
+        environmentTimerCurrent -= 1 * Time.deltaTime;
+        if (environmentTimerCurrent > 0) return;
+        
+        environmentRecentlyApplied = false;
+        environmentTimerCurrent = environmentTimerMax;
     }
 
     public void ApplyDamage(int _damage)
@@ -31,7 +42,6 @@ public class P_Vitals : MonoBehaviour, IHittable
         if (Cheat.Code.IsGodMode) return;
 
         int damage = _damage;
-
         float absorbed = (float)_damage / 3f;
         float absorbedDamage;
 
@@ -39,23 +49,35 @@ public class P_Vitals : MonoBehaviour, IHittable
         else absorbedDamage = armor;
 
         damage -= (int)absorbedDamage;
-
         health -= damage;
         armor -= (int)absorbedDamage;
 
-        float healthPercentage = ((float)health / (float)maxHealth);
-        GameController.Instance.Interface.UpdateHealth(healthPercentage);
-
-        float armorPercentage = ((float)armor / (float)maxArmor);
-        GameController.Instance.Interface.UpdateArmor(armorPercentage);
-
+        UpdateUserInterface();
         ApplyHurtEffect(damage);
         CheckIfDied();
     }
 
+    public void ApplyDamageEnvironment(int _damage)
+    {
+        if (Cheat.Code.IsGodMode) return;
+
+        if (environmentRecentlyApplied) return;
+
+        environmentRecentlyApplied = true;
+        health -= _damage;
+        UpdateUserInterface();
+        ApplyAcidEffect(_damage);
+        CheckIfDied();
+    }
+
+    void ApplyAcidEffect(int damage)
+    {
+        GameController.Instance.PlayScreenGlow(Color.green, damage);
+        Debug.Log("Nuclear Waste bad!");
+    }
     private void ApplyHurtEffect(int damage)
     {
-        GameController.Instance.PlayScreenGlow(damage);
+        GameController.Instance.PlayScreenGlow(Color.red, damage);
         Debug.Log("Ouch!");
     }
 
@@ -64,7 +86,7 @@ public class P_Vitals : MonoBehaviour, IHittable
         if (health <= 0)
         {
             health = 0;
-            mover.IsDead = true;
+            pMovement.IsDead = true;
             GameController.Instance.portrait.PlayerDied();
         }
     }
@@ -74,14 +96,35 @@ public class P_Vitals : MonoBehaviour, IHittable
         health = maxHealth;
         armor = maxArmor / 2;
 
-        mover.IsDead = false;
+        pMovement.IsDead = false;
+
+        UpdateUserInterface();
+
+        GameController.Instance.portrait.PlayerRespawn();
+    }
+
+    public void AddVitals(int _health, int _armor)
+    {
+        health = Math.Min(health + _health, maxHealth);
+        armor = Math.Min(armor + _armor, maxArmor);
+
+        UpdateUserInterface();
+    }
+
+    private void UpdateUserInterface()
+    {
 
         float healthPercentage = ((float)health / (float)maxHealth);
         GameController.Instance.Interface.UpdateHealth(healthPercentage);
 
         float armorPercentage = ((float)armor / (float)maxArmor);
         GameController.Instance.Interface.UpdateArmor(armorPercentage);
+    }
 
-        GameController.Instance.portrait.PlayerRespawn();
+    public void MaxHealthAmmo()
+    {
+        health = maxHealth;
+        armor = maxArmor;
+        UpdateUserInterface();
     }
 }

@@ -44,12 +44,19 @@ public class Cheat : MonoBehaviour
         else if (code == "idkfa")
         {
             GameController.Instance.DoomGuy.GetComponent<W_Controller>().MaxAmmo();
+            GameController.Instance.DoomGuy.GetComponent<P_Vitals>().MaxHealthAmmo();
+            GameController.Instance.DoomGuy.GetComponent<P_Inventory>().Cheat_Toggle_Keys(true);
             Array.Clear(cheat, 0, 5);
-        }       
+        }
+        else if (code == "idspd")
+        {
+            GameController.Instance.DoomGuy.GetComponent<P_Movement>().CheatSpeed();
+        }
     }
     public void ResetAllCheats()
     {
         IsGodMode = false;
         Array.Clear(cheat, 0, 5);
+        GameController.Instance.DoomGuy.GetComponent<P_Inventory>().Cheat_Toggle_Keys(false);
     }
 }

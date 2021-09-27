@@ -30,11 +30,13 @@ public class S_HurtEffect : MonoBehaviour, IScreenGlow
 
     }
 
-    public void PlayScreenGlow(int damage)
+    public void PlayScreenGlow(Color col, int damage)
     {
         screenGlowTime = screenMaxGlowTime;
 
         glowAlpha = Mathf.Clamp((0.5f + ((float)damage / 256)), 0.25f, 0.75f);
+
+        screenGlowColor = col;
         screenGlowColor.a = glowAlpha;
     }
 }

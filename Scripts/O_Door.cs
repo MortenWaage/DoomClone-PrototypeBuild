@@ -14,13 +14,14 @@ public class O_Door : MonoBehaviour, IInteractable
     [SerializeField] float doorRaiseSpeed = 5f;
 
     bool isLocked = false;
-
+    bool isTriggered = false;
     float doorCloseDelay = 2.5f;
     float doorHeight;
     float doorInitialHeight;
+
     bool DoorOpen
     {
-        get => transform.position.y >= doorHeight;
+        get => transform.position.y >= (doorInitialHeight + doorHeight);
     }
     bool DoorClosed
     {
@@ -30,13 +31,21 @@ public class O_Door : MonoBehaviour, IInteractable
     {
         get
         {
-            return isLocked;            
+            if (!isLocked) return false;
+
+            if (GotKey)
+            {
+                return false;
+            }
+            else return true;
+                
         }
     }
-    bool GotKey
-    {
-        get => true;
-    }
+
+
+
+    bool GotKey { get; set; } = false;
+
 
     #region Start and Update
     void Start()
@@ -54,38 +63,70 @@ public class O_Door : MonoBehaviour, IInteractable
     {
         switch (doorStatus)
         {
-            case Doors.DoorStatus.Open      : if (!DoorOpen && !DoorLocked) RaiseDoor();   break;
-            case Doors.DoorStatus.Closed    : if (!DoorClosed) LowerDoor(); break;
+            case Doors.DoorStatus.Open      : if (!DoorOpen)    RaiseDoor();    break;
+            case Doors.DoorStatus.Closed    : if (!DoorClosed)  LowerDoor();    break;
         }
+
+        if (Input.GetKeyDown(KeyCode.R))
+            ResetDoor();
     }
     #endregion
 
     #region Methods
     void RaiseDoor()
     {
+        Debug.Log("Raising Door");
         transform.position += Vector3.up * doorRaiseSpeed * Time.deltaTime;
     }
     void LowerDoor()
     {
         transform.position -= Vector3.up * doorRaiseSpeed * Time.deltaTime;
     }
-    public void Interact(byte? keys = null)
+    public void Interact(P_Inventory inventory)
     {
-        for (int i = 0; i < 4; i++)
-        {
-            Debug.Log((Keys.KeyType)i);
-        }
+        if (inventory.ChecKey(key))
+            GotKey = true;
 
-        doorStatus = Doors.DoorStatus.Open;
-        StopCoroutine("CloseDoorAfterTime");
-        StartCoroutine("CloseDoorAfterTime");
-
-        PlayDoorSound();
+        OpenDoor();
     }
+
+    
+    public void TriggerDoor()
+    {
+        if (isTriggered) return;
+
+        Debug.Log("Opening the Door");
+        doorStatus = Doors.DoorStatus.Open;
+        isTriggered = true;
+    }
+
+    private void OpenDoor()
+    {       
+        if (!DoorOpen && !DoorLocked)
+        {
+            doorStatus = Doors.DoorStatus.Open;
+            StopCoroutine("CloseDoorAfterTime");
+            StartCoroutine("CloseDoorAfterTime");
+            PlayDoorSound();
+        }            
+    }
+    public void Close()
+    {
+        doorStatus = Doors.DoorStatus.Closed;
+        GotKey = false;
+    }
+
+    public void ResetDoor()
+    {
+        GotKey = false;
+        isTriggered = false;
+    }
+
     IEnumerator CloseDoorAfterTime()
     {
         yield return new WaitForSeconds(doorCloseDelay);
         doorStatus = Doors.DoorStatus.Closed;
+        GotKey = false;
         PlayDoorSound();
     }
     void PlayDoorSound()
@@ -93,5 +134,6 @@ public class O_Door : MonoBehaviour, IInteractable
         if (doorSound != null)
             doorSound.Play();
     }
+
     #endregion
 }

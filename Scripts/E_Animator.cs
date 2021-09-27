@@ -212,6 +212,7 @@ public static class Animation
             case Demons.DemonType.Imp       : return AnimationsImp[type];
             case Demons.DemonType.Rifleman  : return AnimationsRifleman[type];
             case Demons.DemonType.Pinky     : return AnimationsPinky[type];
+            case Demons.DemonType.Baron     : return AnimationsBaron[type];
             default                         : return new int[] { };
         }
     }
@@ -223,7 +224,7 @@ public static class Animation
         {Type.Walk, new int[] {0, 31, 8, 4, 400, 85, 150} },
         {Type.Pain, new int[] {32, 39, 8, 1, 300, 100, 100} },
         {Type.Death, new int[] {40, 44, 1, 5, 1000, 100, 40} },
-        {Type.AttackRange, new int[] {45, 68, 8, 3, 400, 85, 100} },
+        {Type.AttackRange, new int[] {45, 68, 8, 3, 800, 85, 100} },
     };
 
     public static readonly Dictionary<Type, int[]> AnimationsRifleman = new Dictionary<Type, int[]>()
@@ -233,7 +234,7 @@ public static class Animation
         {Type.Walk, new int[] {0, 31, 8, 4, 400, 100, 150} },
         {Type.Pain, new int[] {32, 39, 8, 1, 300, 85, 100} },
         {Type.Death, new int[] {40, 44, 1, 5, 1000, 100, 45,} },
-        {Type.AttackRange, new int[] {45, 60, 8, 2, 400, 65, 100} },
+        {Type.AttackRange, new int[] {45, 60, 8, 2, 200, 65, 100} },
     };
 
     public static readonly Dictionary<Type, int[]> AnimationsPinky = new Dictionary<Type, int[]>()
@@ -244,5 +245,14 @@ public static class Animation
         {Type.Pain, new int[] {32, 39, 8, 1, 300, 100, 70} },
         {Type.Death, new int[] {40, 45, 1, 5, 800, 100, 65,} },
         {Type.AttackMelee, new int[] {46, 69, 8, 3, 300, 100, 75} },
+    };
+    public static readonly Dictionary<Type, int[]> AnimationsBaron = new Dictionary<Type, int[]>()
+    {
+        #region From Index, To Index, Directions, Animations Per Direction, AnimationDuration(in miliseconds, Width X, Width Z), 
+        #endregion
+        {Type.Walk, new int[] {0, 31, 8, 4, 400, 120, 80} },
+        {Type.Pain, new int[] {0, 7, 8, 1, 300, 120, 80} },
+        {Type.Death, new int[] {32, 38, 1, 7, 1200, 100, 75,} },
+        {Type.AttackRange, new int[] {39, 62, 8, 3, 700, 120, 105} },
     };
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class P_Movement : MonoBehaviour, IMovement
 {
+    P_Vitals vitals;
     public bool IsDead { get; set; } = false;
     Camera cam;
     ICamera camController;
@@ -22,6 +23,7 @@ public class P_Movement : MonoBehaviour, IMovement
     [SerializeField] [Range(0, 0.99f)] float stopVelocity = 0.2f;
     [SerializeField] [Range(0, 100f)] float playerSpeed = 15f;
     [SerializeField] [Range(0, 2f)] float turnSpeed = 1f;
+    float playerMaxSpeed;
 
     [Header("Global Settings")]
     [SerializeField] [Range(0, 100f)] float gravity = 0;
@@ -59,9 +61,11 @@ public class P_Movement : MonoBehaviour, IMovement
     {
         GameController.Instance.DoomGuy = gameObject;
         cam = Camera.main;
+        vitals = GetComponent<P_Vitals>();
         camController = GetComponent<ICamera>();
         collider = GetComponent<Collider>();
         state = MoveState.Free;
+        playerMaxSpeed = playerSpeed;
 
         StartCoroutine("Initialize");
     }
@@ -74,6 +78,8 @@ public class P_Movement : MonoBehaviour, IMovement
 
     private void Update()
     {
+        if (IsDead) velocity = Vector3.zero;
+
         switch (state)
         {
             case MoveState.Moving:
@@ -125,7 +131,7 @@ public class P_Movement : MonoBehaviour, IMovement
             if (state != MoveState.Falling && state != MoveState.OutOfBounds)
                 ChangeState(MoveState.Stopping);
 
-            camController.ResetCameraTilt();
+            //camController.ResetCameraTilt();
         }
         else
         {
@@ -145,7 +151,7 @@ public class P_Movement : MonoBehaviour, IMovement
             if (dir == Inputs.Directions.StrafeRight)
                 velocity += transform.right;
 
-            camController.ApplyCameraTilt(velocity, dir);
+            //camController.ApplyCameraTilt(velocity, dir);
 
             velocity.Normalize();
         }
@@ -158,29 +164,51 @@ public class P_Movement : MonoBehaviour, IMovement
     {
         Vector3 direction = velocity.normalized;
         Vector3 rayStartPosition = UnderPlayer + (Vector3.up * obstacleTraversionHeight);
+        RaycastHit hit;
 
-        bool hitObstacle = (Physics.Raycast(rayStartPosition, direction, obstacleCheckDistance, groundLayer));
+        if (!Physics.Raycast(rayStartPosition, direction, out hit, obstacleCheckDistance))
+            return false;
 
-        return hitObstacle;
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer(Layers.Map))
+            return true;
+
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer(Layers.Attackable))
+            return true;
+
+        return false;
     }
     private void AlignWithGround()
     {
         Vector3 rayCastOrigin = transform.position + velocity.normalized;
         RaycastHit hit;
 
-        float range = collider.bounds.extents.y;
+        float range = collider.bounds.extents.y * 2f;
 
-        /*bool insideGround = (*/
-        Physics.Raycast(rayCastOrigin, Vector3.down, out hit, range, groundLayer)/*)*/;
+        if (!Physics.Raycast(rayCastOrigin, Vector3.down, out hit, range))
+        {
+            ChangeState(MoveState.Falling);
+            return;
+        }
+            
 
-        if (hit.collider != null)
+        if (hit.collider.tag == "Elevator")
+        {
+            if (Vector3.Distance(hit.point, transform.position) > (collider.bounds.extents.y + 0.1f)) return;
+
+            transform.position += Vector3.up * hit.collider.GetComponent<DELETE_LATER_ELEVATOR>().elevatorSpeed * Time.deltaTime;
+            return;
+        }
+        if (hit.collider.tag == "NuclearWaste")
+        {
+            vitals.ApplyDamageEnvironment(10);
+        }
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer(Layers.Map))
         {
             Vector3 newPosition = transform.position;
             newPosition.y = hit.point.y + collider.bounds.extents.y + 0.1f;
             transform.position = newPosition;
-        }
-        else
-            ChangeState(MoveState.Falling);
+            return;
+        }     
     }
 
     private void CheckIfFalling()
@@ -201,7 +229,7 @@ public class P_Movement : MonoBehaviour, IMovement
 
         bool OnGround()
         {
-            float distance = collider.bounds.extents.y + 0.1f;
+            float distance = collider.bounds.extents.y + 0.01f;
 
             bool grounded = (Physics.Raycast(transform.position, Vector3.down, distance, groundLayer));
 
@@ -275,9 +303,21 @@ public class P_Movement : MonoBehaviour, IMovement
 
         GetComponent<W_Controller>().ResetWeapons();
         GetComponent<P_Vitals>().ResetVitals();
+        ResetSpeed();
+        GameController.Instance.Interface.UpdateKeys(false, false, false);
 
     }
     #endregion
+
+    public void CheatSpeed()
+    {
+        Debug.Log("At warp speed!");
+        playerSpeed = 70f;
+    }
+    public void ResetSpeed()
+    {
+        playerSpeed = playerMaxSpeed;
+    }
 
     #region DECREPATED_FUNCTIONS
     /*-----------------------------*
@@ -286,40 +326,6 @@ public class P_Movement : MonoBehaviour, IMovement
 
 
     [SerializeField] [Range(0.1f, 3f)] float groundCheckOffset = 1f;
-    [Obsolete("AlignWithGround() - Replaced all other ground check functions")]
-    void MoveUpSlope()
-    {
-        RaycastHit hit;
-
-        Vector3 rayCastOrigin = (transform.position + (Vector3.up * collider.bounds.extents.y)) + (velocity.normalized * groundCheckOffset);
-
-        bool insideGround = (Physics.Raycast(rayCastOrigin, Vector3.down, out hit, (collider.bounds.extents.y * 2), groundLayer));
-
-        if (insideGround)
-        {
-            Debug.Log("Is Inside Ground");
-
-            Vector3 newPosition = transform.position;
-            newPosition.y = hit.point.y + collider.bounds.extents.y + 0.1f;
-            transform.position = newPosition;
-        }
-    }
-
-    float rayOffset, rayDistance = 0; // Decrepated floats
-    [Obsolete("AlignWithGround() - Replaced all other ground check functions")]
-    bool OnGround(RayOffset offset)
-    {
-        Vector3 _offset;
-        if (offset == RayOffset.FRONT) _offset = (transform.forward * rayOffset);
-        else _offset = -(transform.forward * rayOffset);
-
-        Vector3 _rayPos = transform.position + _offset;
-        float distance = rayDistance;
-
-        bool grounded = (Physics.Raycast(_rayPos, Vector3.down, distance, groundLayer));
-
-        return grounded;
-    }
 
     #endregion
 }

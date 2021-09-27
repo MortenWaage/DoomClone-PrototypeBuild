@@ -8,8 +8,6 @@ public class W_Rockets : MonoBehaviour, IWeapons
 
     Weapons.WeaponType type;
     W_Controller controller;
-
-    AudioSource audio;
     Camera cam;
 
     [SerializeField] LayerMask hittablesLayer;
@@ -36,8 +34,6 @@ public class W_Rockets : MonoBehaviour, IWeapons
     {
         cam = Camera.main;
         type = Weapons.WeaponType.Rocket;
-        audio = GetComponent<AudioSource>();
-        //StartCoroutine("Initialize");
     }
 
     IEnumerator Initialize()
@@ -51,11 +47,6 @@ public class W_Rockets : MonoBehaviour, IWeapons
         if (!isActiveWeapon) return;
 
         float animationSpeed = 60 / shotsPerMinute;
-
-        if (!audio.isPlaying) audio.Play();
-
-        
-
         
         for (int i = 0; i < numberOfShots; i++)
         {
@@ -78,7 +69,7 @@ public class W_Rockets : MonoBehaviour, IWeapons
             _finalSpeed *= 1 - ( projectileSpeed / (GameController.Instance.Rntable.P_Random() + 1) );
 
         GameObject newProjectile = Instantiate(RocketPrefab, firingPos, firingRot);//GameController.Instance.DoomGuy.transform.position, GameController.Instance.DoomGuy.transform.rotation);
-        Rocket projectile = newProjectile.GetComponent<Rocket>();
+        W_Projectile_Player projectile = newProjectile.GetComponent<W_Projectile_Player>();
 
         projectile.SetAttributes(damage, damageRolls, areaOfEffect, _finalSpeed);
     }

@@ -4,5 +4,5 @@ using UnityEngine;
 
 public interface IInteractable
 {
-    public void Interact(byte? keys = null);
+    public void Interact(P_Inventory inventory);
 }

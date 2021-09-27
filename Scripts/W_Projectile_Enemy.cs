@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class E_Projectile : MonoBehaviour
+public class W_Projectile_Enemy : MonoBehaviour
 {
     #region Properties
     Demons.Projectile type;
-    MeshRenderer render;
+    Renderer rend;
     Texture[] sprites;
 
     bool initialized = false;
@@ -24,10 +24,10 @@ public class E_Projectile : MonoBehaviour
     {
         direction = transform.forward;
 
-        render = GetComponent<MeshRenderer>();
-        if (render == null)
+        rend = GetComponent<Renderer>();
+        if (rend == null)
         {
-            Debug.Log("Cannt get MeshRenderer");
+            Debug.Log("Cannot get MeshRenderer");
             Debug.Break();
         }
 
@@ -43,8 +43,6 @@ public class E_Projectile : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        Debug.Log(collision.collider.gameObject.name);
-
         if (collision.collider.gameObject.layer == LayerMask.NameToLayer(Layers.Projectile)) return;
 
         if (collision.collider.gameObject.layer == LayerMask.NameToLayer(Layers.DoomGuy))
@@ -60,6 +58,7 @@ public class E_Projectile : MonoBehaviour
     }
     public void SetAttributes(Texture[] tex, int dam, int damRoll, float pSpeed)
     {
+        StartCoroutine("SetTexture");
         damage = dam;
         damageRolls = damRoll;
         projectileSpeed = pSpeed;
@@ -67,9 +66,19 @@ public class E_Projectile : MonoBehaviour
 
         transform.position += (transform.forward * projectileOffset);
 
+        sprites = tex;
+
         StartCoroutine("DestroyAfterTime");
 
         initialized = true;
+    }
+    IEnumerator SetTexture()
+    {
+        yield return new WaitForEndOfFrame();
+
+        if (rend == null) Debug.Break();
+        if (sprites[0] == null) Debug.Log("no texture");
+        rend.material.SetTexture("_MainTex", sprites[0]);
     }
     void P_CauseDamage(P_Vitals vitals)
     {

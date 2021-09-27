@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class W_Projectile : MonoBehaviour
+public class W_Projectile_Player : MonoBehaviour
 {
     Collider collider;
     AudioSource audio;
@@ -89,7 +89,52 @@ public class W_Projectile : MonoBehaviour
             }
         }
 
+        //distance = Vector3.Distance(transform.position, GameController.Instance.DoomGuy.transform.position);
+        //if (distance < areaOfEffect)
+        //{
+        //    var newHittable = GameController.Instance.DoomGuy.GetComponent<IHittable>();
+        //    float damage = CalculateDamage(distance);
+        //    newHittable.ApplyDamage(damage);
+        //}
+
         Destroy(gameObject);
     }
+    //float CalculateDamage(float distance)
+    //{
+    //    float finalDam = Mathf.FloorToInt(UnityEngine.Random.Range(damMin, damMax));
+    //    finalDam = finalDam / distance;
+    //    return finalDam;
+    //}
 
+    //void CheckIfHitTarget()
+    //{
+    //    projectileOrigin = GameController.Instance.DoomGuy.transform.position;
+    //    Vector3 forward = GameController.Instance.DoomGuy.transform.forward;
+
+    //    RaycastHit hit;
+
+    //    Physics.Raycast(projectileOrigin, forward, out hit, Mathf.Infinity, hittablesLayer);
+
+    //    if (hit.collider != null)
+    //    {
+    //        DemonController[] enemies = FindObjectsOfType<DemonController>();
+    //        List<IHittable> viableTargets = new List<IHittable>();
+
+    //        foreach (DemonController enemy in enemies)
+    //        {
+    //            if (Vector3.Distance(enemy.transform.position, hit.point) < areaOfEffect)
+    //            {
+    //                IHittable newHittable = enemy.GetComponent<IHittable>();
+
+    //                if (newHittable != null)
+    //                    viableTargets.Add(newHittable);
+    //            }
+    //        }
+
+    //        foreach (IHittable target in viableTargets)
+    //        {
+    //            target.ApplyDamage(damage);
+    //        }
+    //    }
+    //}
 }
