@@ -59,7 +59,26 @@ public static class W_TargetMethods
         forwardVector += aimDirection.up * height;
 
         return forwardVector;
-    } 
+    }
+    public static Vector3 GetBulletSpread(Vector3 aimDirection, float projectileSpread)
+    {
+        var spread = projectileSpread / GameController.Instance.Rntable.P_Random();
+        float height;
+        float width;
+
+        if (GameController.Instance.Rntable.P_Random() < 128)
+            height = spread;
+        else height = -spread;
+
+        if (GameController.Instance.Rntable.P_Random() < 128)
+            width = spread;
+        else width = -spread;
+
+        aimDirection += Vector3.right * width;
+        aimDirection += Vector3.up * height;
+
+        return aimDirection;
+    }
     public static Vector3 GetRandomImpactOffset(Vector3 targetPosition, float targetWidth, float targetHeight)
     {
         float height;

@@ -110,4 +110,12 @@ public class O_Lootable_Object : MonoBehaviour
         rend.enabled = toggle;
         coll.enabled = toggle;
     }
+
+    void OnDrawGizmos()
+    {
+        if (Application.isPlaying) return;
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawCube(transform.position, new Vector3(1.5f, 1.5f, 1.5f));
+    }
 }

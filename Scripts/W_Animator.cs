@@ -193,4 +193,12 @@ public class W_Animator : MonoBehaviour, IWeapons
     {
         // DUMMY FUNCTION
     }
+
+    void OnDrawGizmos()
+    {
+        if (Application.isPlaying) return;
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawCube(transform.position, new Vector3(2.5f, 4.5f, 2.5f));
+    }
 }

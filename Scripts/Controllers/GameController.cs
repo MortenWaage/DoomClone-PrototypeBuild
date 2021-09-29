@@ -33,6 +33,7 @@ public class GameController : MonoBehaviour
 
     public DemonScriptableObjectsList demons;
     public ItemScriptableObjectsList items;
+    public PropsScriptableObjectsList props;
 
     public GameObject SpawnPoint { get; private set; }
 
@@ -62,6 +63,7 @@ public class GameController : MonoBehaviour
 
         debug = GetComponentInChildren<DebugInfo>();
         demons = GetComponentInChildren<DemonScriptableObjectsList>();
+        props = GetComponentInChildren<PropsScriptableObjectsList>();
         items = GetComponentInChildren<ItemScriptableObjectsList>();
         screenGlowHurt = GetComponentInChildren<IScreenGlow>();
         portrait = GetComponentInChildren<IPortrait>();

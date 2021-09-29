@@ -51,3 +51,18 @@ public static class Doors
     public enum DoorState { Unlocked, Locked }
     public enum DoorStatus { Open, Closed }
 }
+
+public static class Props
+{
+    public enum PropType
+    {
+        None,
+        LightStand,
+        Candle,
+        SupportCollumn,
+        Barrel,
+        DeadMarine,
+        Burning_Barrel,
+        Dead_Tree_A
+    }
+}

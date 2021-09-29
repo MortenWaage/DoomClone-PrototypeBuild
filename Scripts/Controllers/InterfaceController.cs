@@ -102,9 +102,9 @@ public class InterfaceController : MonoBehaviour, IPlayerUI
     {
         switch (type)
         {
-            case Keys.KeyType.Blue      :   { item_pickup.text = "Picked up Blue key"; item_pickup.color = Color.blue;    } break;
-            case Keys.KeyType.Yellow    :   { item_pickup.text = "Picked up Yellow key"; item_pickup.color = Color.yellow;  } break;
-            case Keys.KeyType.Red       :   { item_pickup.text = "Picked up Red key"; item_pickup.color = Color.red;     } break;
+            case Keys.KeyType.Blue      :   { item_pickup.text = "PICKED UP A BLUE KEYCARD"; item_pickup.color = Color.blue;    } break;
+            case Keys.KeyType.Yellow    :   { item_pickup.text = "PICKED UP A YELLOW KEYCARD"; item_pickup.color = Color.yellow;  } break;
+            case Keys.KeyType.Red       :   { item_pickup.text = "PICKED UP A RED KEYCARD"; item_pickup.color = Color.red;     } break;
         }
 
         StopCoroutine("ClearPickupMessage");
@@ -127,9 +127,12 @@ public class InterfaceController : MonoBehaviour, IPlayerUI
     }
 
     public void UpdateAmmo(float ammo, int count)
-    {
+    {       
+
         AmmoCount.text = count.ToString();
-        Ammo_Bar.material.SetFloat("_FillPercent", Mathf.Clamp(ammo, 0, 1));
+
+        if (Ammo_Bar == null) return;
+            Ammo_Bar.material.SetFloat("_FillPercent", Mathf.Clamp(ammo, 0, 1));
     }
     public void UpdateReload(float reload)
     {

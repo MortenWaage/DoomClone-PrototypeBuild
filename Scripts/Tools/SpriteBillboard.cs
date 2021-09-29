@@ -5,19 +5,30 @@ using UnityEngine;
 public class SpriteBillboard : MonoBehaviour
 {
     Camera cam;
+    GameObject player;
+    bool initialized = false;
 
     private void Start()
     {
         cam = Camera.main;
+        
+        StartCoroutine("Initialize");
+    }
+
+    IEnumerator Initialize()
+    {
+        yield return new WaitForEndOfFrame();
+
+        player = GameController.Instance.DoomGuy;
+        initialized = true;
     }
 
     private void Update()
     {
-        transform.rotation = cam.transform.rotation;
-    }
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.blue;
-        Gizmos.DrawLine(transform.position, transform.position + transform.forward);
+        if (!initialized) return;
+
+        Quaternion billBoardTransform = player.transform.rotation;
+        //billBoardTransform.y = player.transform.rotation.y;
+        transform.rotation = billBoardTransform;
     }
 }

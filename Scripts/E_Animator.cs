@@ -122,7 +122,6 @@ public class E_Animator : MonoBehaviour
     }
     void SetTexture(Texture newTexture)
     {
-
         Vector3 _scale = Vector3.one;
         _scale.x *= spriteX;
         _scale.z *= spriteZ;
@@ -252,7 +251,7 @@ public static class Animation
         #endregion
         {Type.Walk, new int[] {0, 31, 8, 4, 400, 120, 80} },
         {Type.Pain, new int[] {0, 7, 8, 1, 300, 120, 80} },
-        {Type.Death, new int[] {32, 38, 1, 7, 1200, 100, 75,} },
+        {Type.Death, new int[] {32, 38, 1, 7, 1800, 100, 75,} },
         {Type.AttackRange, new int[] {39, 62, 8, 3, 700, 120, 105} },
     };
 }

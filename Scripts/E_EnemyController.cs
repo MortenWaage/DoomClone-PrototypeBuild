@@ -63,6 +63,7 @@ public class E_EnemyController : MonoBehaviour, IHittable
     float attackSpeed;
     float remainingAttackSpeed;
     float reactionTime;
+    float projectileSpread;
     float maxReactionTime = 3f;
     float staggeredDuration = 0;
     #endregion
@@ -246,21 +247,37 @@ public class E_EnemyController : MonoBehaviour, IHittable
 
         void A_Projectile_Travel()
         {
-            var _lookRotation = Quaternion.LookRotation(CurrentTarget.transform.position - transform.position).normalized;
+            var previousTransform = transform.rotation;
 
-            GameObject newProjectile = Instantiate(projectilePrefab, transform.position, _lookRotation);
+            Vector3 direction = CurrentTarget.transform.position - transform.position;
+            transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+            direction = W_TargetMethods.GetBulletSpread(transform, projectileSpread);
+            var _lookRotation = Quaternion.LookRotation(direction).normalized;
+
+            GameObject newProjectile = Instantiate(projectilePrefab, transform.position, _lookRotation); 
             W_Projectile_Enemy projectile = newProjectile.GetComponent<W_Projectile_Enemy>();
 
             projectile.SetAttributes(projectileSprites, damage, damageRolls, demonData.projectileSpeed);
+
+            transform.rotation = previousTransform;
         }
 
         void A_Projectile_Instant()
         {
+            // Store current transform
+            var previousTransform = transform.rotation;
+
             Vector3 direction = CurrentTarget.transform.position - transform.position;
+            transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+
+            direction = W_TargetMethods.GetBulletSpread(transform, projectileSpread);
 
             RaycastHit hit;
 
             Physics.Raycast(transform.position, direction, out hit, Mathf.Infinity, doomGuyLayer);
+
+            // Reset transform back to previous transform
+            transform.rotation = previousTransform;
 
             if (hit.collider != null)
             {
@@ -271,7 +288,6 @@ public class E_EnemyController : MonoBehaviour, IHittable
                 int damage = CalculateDamage();
                 vitals.ApplyDamage(damage);
             }
-            else Debug.Log("Cannot find physics layer");
 
             int CalculateDamage()
             {
@@ -281,7 +297,6 @@ public class E_EnemyController : MonoBehaviour, IHittable
             }
         }
     }
-
     void PlayAudio(string sound)
     {
         if (sound == "hurt")
@@ -297,7 +312,6 @@ public class E_EnemyController : MonoBehaviour, IHittable
             demonAudio.Play();
         }
     }
-
     void A_FaceTarget(bool isFacing)
     {
         A_Face_Target = isFacing;
@@ -320,14 +334,12 @@ public class E_EnemyController : MonoBehaviour, IHittable
 
         CheckIfDead();
     }
-
     private void ApplyHurtEffect()
     {
         Vector3 impactPoint = W_TargetMethods.GetRandomImpactOffset(transform.position, initialSize.x * 0.2f, initialSize.y * 0.2f);
         Vector3 offset = (transform.position - GameController.Instance.DoomGuy.transform.position).normalized * 2f;
         GameController.Instance.w_effects.PlayDamageEffect(impactPoint - offset, type);
     }
-
     private void CheckIfDead()
     {
         if (state == Demons.MonsterState.Dead) return;
@@ -337,12 +349,7 @@ public class E_EnemyController : MonoBehaviour, IHittable
             ChangeState(Demons.MonsterState.Dead);
             animator.QueueAnimation(Animation.Type.Death, false, 0, true);
 
-            Vector3 newPos = ground;
-            newPos.y += 1f;
-            transform.position = newPos;
-
             collider.enabled = false;
-
             A_FaceTarget(false);
 
             return;
@@ -416,13 +423,11 @@ public class E_EnemyController : MonoBehaviour, IHittable
     {
         if (collider.gameObject.layer == LayerMask.NameToLayer(Layers.Map))
         {
-            if (type == Demons.DemonType.Baron)
-                Debug.Log(gameObject.name + " Collided with wall");
-
             lastBlockedDirection = currentDirection;
             currentDirection = GetNewDirection();
         }
     }
+
     private void Wander()
     {
         if (!useMovement) return;
@@ -497,7 +502,10 @@ public class E_EnemyController : MonoBehaviour, IHittable
         if (hit.collider.gameObject.layer == LayerMask.NameToLayer(Layers.Map))
             return true;
 
-        if (hit.collider.tag == "NuclearWaste")
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer(Layers.Attackable))
+            return true;
+
+        if (hit.collider.CompareTag("NuclearWaste"))
             return true;
 
         return false;
@@ -606,6 +614,7 @@ public class E_EnemyController : MonoBehaviour, IHittable
         projectilePrefab = demonData.projectilePrefab;
         attackType = demonData.attackType;
         projectileType = demonData.projectileType;
+        projectileSpread = demonData.projectileSpread;
 
         CurrentTarget = GameController.Instance.DoomGuy;
         attackRange = demonData.attackRange;
@@ -643,4 +652,12 @@ public class E_EnemyController : MonoBehaviour, IHittable
         #endregion
     }
     #endregion
+
+    void OnDrawGizmos()
+    {
+        if (Application.isPlaying) return;
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawCube(transform.position, new Vector3(1.5f, 3.5f, 1.5f));
+    }
 }

@@ -5,7 +5,10 @@ using UnityEngine;
 
 public class W_Controller : MonoBehaviour
 {
-    public Camera cam;
+    [HideInInspector] public Camera cam;
+
+    [SerializeField] GameObject muzzleObject;
+    IWeapons muzzleFlashInterface;
 
     #region PROPERTIES
     public Weapons.WeaponState State { get; private set; }
@@ -62,9 +65,9 @@ public class W_Controller : MonoBehaviour
     private void Start()
     {
         cam = Camera.main;
-
         State = Weapons.WeaponState.Free;
 
+        muzzleFlashInterface = muzzleObject.GetComponent<IWeapons>();
         wepAnimator = GetComponent<W_Animator>();
         wepAnimatorInterface = wepAnimator.GetComponent<IWeapons>();
 
@@ -78,12 +81,12 @@ public class W_Controller : MonoBehaviour
     {
         if (OutOfAmmo()) return;
 
-        //RemoveAmmo();
-
         ChangeState(Weapons.WeaponState.Shoot);
 
         foreach (IWeapons weapon in weaponsList)
             weapon.Shoot();
+
+        muzzleFlashInterface.Shoot();
 
         UI_UpdateAmmo();
     }
@@ -132,6 +135,7 @@ public class W_Controller : MonoBehaviour
             weapon.ChangeWeapon(_type);
 
         wepAnimatorInterface.ChangeWeapon(_type);
+        muzzleFlashInterface.ChangeWeapon(_type);
         equippedWeapon = _type;
 
         UI_UpdateWeaponType();

@@ -6,6 +6,7 @@ public class W_ImpactEffects : MonoBehaviour
 {
     [SerializeField] GameObject effectProjectileStandard;
     [SerializeField] GameObject effectDamageBlood;
+    [SerializeField] GameObject effectDamageGoo;
 
     public void PlayImpactEffect(Vector3 hitPoint, Weapons.WeaponType w_type)
     {
@@ -24,6 +25,7 @@ public class W_ImpactEffects : MonoBehaviour
             case Demons.DemonType.Rifleman      : Instantiate(effectDamageBlood, hitPoint, Quaternion.identity); break;
             case Demons.DemonType.Imp           : Instantiate(effectDamageBlood, hitPoint, Quaternion.identity); break;
             case Demons.DemonType.Pinky         : Instantiate(effectDamageBlood, hitPoint, Quaternion.identity); break;
+            case Demons.DemonType.Baron         : Instantiate(effectDamageGoo,   hitPoint, Quaternion.identity); break;
             default                             : Instantiate(effectDamageBlood, hitPoint, Quaternion.identity); break;
         }
     }

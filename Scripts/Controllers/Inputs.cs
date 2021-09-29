@@ -138,9 +138,9 @@ public class Inputs : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            if (pWeapon.State != Weapons.WeaponState.Free || pWeapon.equippedWeapon == Weapons.WeaponType.Fists) return;
+            //if (pWeapon.State != Weapons.WeaponState.Free || pWeapon.equippedWeapon == Weapons.WeaponType.Fists) return;
 
-            pWeapon.SwapWeapon(Weapons.WeaponType.Fists);            
+            //pWeapon.SwapWeapon(Weapons.WeaponType.Fists);            
         }
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
